@@ -640,6 +640,14 @@ Some recommended settings
 
 If you wish some functionality, feel free to fire tickets with feature requests. If you wish something already present on the tracker (e.g., in 'idea' tickets), say so in comments. (Feel totally free to harass me over desired functionality :-).) If you feel brave, fork the repo, implement the desired functionality and post a PR.
 
+## Branches
+
+Currently, there are three important branches:
+
+- `common_trunk` is branch that contains things that are common (or are intended to become common) between this fork and stock firmware.  
+- `common_trunk_upstream` is similar to `common_trunk`, but merges PRs (built on top of `common_trunk`) before they get accepted into stock firmware. This is my working development version.
+- `master` - merges from `common_trunk`/`common_trunk_upstream`, but contains things specific to this branch. 
+
 ## Adding new features
 
 The key file is `usb_report_updater.c` and its `UpdateUsbReports` function. All keyboard logic is driven from here.
