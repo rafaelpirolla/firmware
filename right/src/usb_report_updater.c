@@ -225,7 +225,7 @@ static void applyKeystrokeSecondary(key_state_t *keyState, key_action_t *action,
 static void applyKeystroke(key_state_t *keyState, key_action_t *action, key_action_t *actionBase)
 {
     if (action->keystroke.secondaryRole) {
-        switch (SecondaryRoles_ResolveState(keyState)) {
+        switch (SecondaryRoles_ResolveState(keyState, action->keystroke.secondaryRole)) {
             case SecondaryRoleState_Primary:
                 applyKeystrokePrimary(keyState, action);
                 return;
@@ -276,13 +276,13 @@ void ApplyKeyAction(key_state_t *keyState, key_action_t *action, key_action_t *a
         case KeyActionType_PlayMacro:
             if (KeyState_ActivatedNow(keyState)) {
                 stickyModifiers = 0;
-                Macros_StartMacro(action->playMacro.macroId, keyState, 255);
+                Macros_StartMacro(action->playMacro.macroId, keyState, 255, true);
             }
             break;
     }
 }
 
-void clearActiveReports(void)
+static void clearActiveReports(void)
 {
     memset(ActiveUsbMouseReport, 0, sizeof *ActiveUsbMouseReport);
     memset(ActiveUsbBasicKeyboardReport, 0, sizeof *ActiveUsbBasicKeyboardReport);
@@ -294,7 +294,7 @@ void clearActiveReports(void)
 }
 
 
-void mergeReports(void)
+static void mergeReports(void)
 {
     for(uint8_t j = 0; j < MACRO_STATE_POOL_SIZE; j++) {
         if(MacroState[j].ms.reportsUsed) {
@@ -333,10 +333,11 @@ static void commitKeyState(key_state_t *keyState, bool active)
 {
     WATCH_TRIGGER(keyState);
     if (PostponerCore_IsActive()) {
-        PostponerCore_TrackKeyEvent(keyState, active);
+        PostponerCore_TrackKeyEvent(keyState, active, 255);
     } else {
         keyState->current = active;
     }
+    WAKE_MACROS_ON_KEYSTATE_CHANGE();
 }
 
 static inline void preprocessKeyState(key_state_t *keyState)
@@ -398,6 +399,10 @@ static void updateActiveUsbReports(void)
     SuppressMods = false;
 
     if (MacroPlaying) {
+        if (Macros_WakeMeOnTime < CurrentTime) {
+            Macros_WakedBecauseOfTime = true;
+            MacroPlaying = true;
+        }
         Macros_ContinueMacro();
     }
 
@@ -409,9 +414,9 @@ static void updateActiveUsbReports(void)
 
     handleLayerChanges();
 
-    LedDisplay_SetLayer(ActiveLayer);
-
-    LedDisplay_SetIcon(LedDisplayIcon_Agent, CurrentTime - LastUsbGetKeyboardStateRequestTimestamp < 1000);
+    if ( CurrentTime - LastUsbGetKeyboardStateRequestTimestamp < 2000) {
+       LedDisplay_SetIcon(LedDisplayIcon_Agent, CurrentTime - LastUsbGetKeyboardStateRequestTimestamp < 1000);
+    }
 
     handleUsbStackTestMode();
 
@@ -425,6 +430,10 @@ static void updateActiveUsbReports(void)
             key_action_t *action;
             key_action_t *actionBase;
 
+            if(((uint8_t*)keyState)[1] == 0) {
+                continue;
+            }
+
             preprocessKeyState(keyState);
 
             if (KeyState_NonZero(keyState)) {
@@ -432,7 +441,12 @@ static void updateActiveUsbReports(void)
                     if (SleepModeActive) {
                         WakeUpHost();
                     }
-                    actionCache[slotId][keyId] = CurrentKeymap[ActiveLayer][slotId][keyId];
+                    if (Postponer_LastKeyLayer != 255 && PostponerCore_IsActive()) {
+                        actionCache[slotId][keyId] = CurrentKeymap[Postponer_LastKeyLayer][slotId][keyId];
+                        Postponer_LastKeyLayer = 255;
+                    } else {
+                        actionCache[slotId][keyId] = CurrentKeymap[ActiveLayer][slotId][keyId];
+                    }
                     handleEventInterrupts(keyState);
                 }
 

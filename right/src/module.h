@@ -9,7 +9,7 @@
 
 // Macros:
 
-    #define MAX_KEY_COUNT_PER_MODULE     64
+    #define MAX_KEY_COUNT_PER_MODULE     35
 
 // Typedefs:
 
@@ -18,6 +18,7 @@
         NavigationMode_Scroll,
         NavigationMode_Caret,
         NavigationMode_Media,
+        NavigationMode_Zoom,
         NavigationMode_None,
     } navigation_mode_t;
 
@@ -28,20 +29,22 @@
         // acceleration configurations
         float baseSpeed;
         float speed;
-        float acceleration;
+        float xceleration;
 
         // navigation mode configurations
         float scrollSpeedDivisor;
         float caretSpeedDivisor;
+        float zoomSpeedDivisor;
 
-        float caretLockSkew;
-        float caretLockSkewFirstTick;
+        float axisLockSkew;
+        float axisLockSkewFirstTick;
 
         navigation_mode_t navigationModes[LayerId_Count];
 
         bool scrollAxisLock;
         bool cursorAxisLock;
-        bool invertAxis;
+        bool swapAxes;
+        bool invertScrollDirection;
     } module_configuration_t;
 
 // Variables:

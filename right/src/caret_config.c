@@ -29,14 +29,46 @@ caret_configuration_t caretCaretMode = {
     }
 };
 
+caret_configuration_t zoomMode = {
+    .axisActions = { //axis array
+        { // horizontal axis
+            .positiveAction = { .type = KeyActionType_None },
+            .negativeAction = { .type = KeyActionType_None },
+        },
+        { // vertical axis
+            .positiveAction = { .type = KeyActionType_Keystroke, .keystroke = { .keystrokeType = KeystrokeType_Basic, .scancode = HID_KEYBOARD_SC_MINUS_AND_UNDERSCORE, .modifiers = HID_KEYBOARD_MODIFIER_LEFTCTRL}},
+            .negativeAction = { .type = KeyActionType_Keystroke, .keystroke = { .keystrokeType = KeystrokeType_Basic, .scancode = HID_KEYBOARD_SC_EQUAL_AND_PLUS, .modifiers = HID_KEYBOARD_MODIFIER_LEFTCTRL | HID_KEYBOARD_MODIFIER_LEFTSHIFT}},
+        }
+    }
+};
+
 caret_configuration_t* GetModuleCaretConfiguration(int8_t moduleId, navigation_mode_t mode) {
     switch (mode) {
         case NavigationMode_Caret:
             return &caretCaretMode;
         case NavigationMode_Media:
             return &caretMediaMode;
+        case NavigationMode_Zoom:
+            return &zoomMode;
         default:
             return &caretCaretMode;
     }
 }
 
+
+void SetModuleCaretConfiguration(navigation_mode_t mode, caret_axis_t axis, bool positive, uint8_t macroIndex) {
+    caret_configuration_t* config = &caretMediaMode;
+
+    if(mode == NavigationMode_Caret) {
+        config = &caretCaretMode;
+    }
+
+    key_action_t* action = positive ? &config->axisActions[axis].positiveAction : &config->axisActions[axis].negativeAction;
+
+    if(macroIndex == 255) {
+        action->type = KeyActionType_None;
+    } else {
+        action->type = KeyActionType_PlayMacro;
+        action->playMacro.macroId = macroIndex;
+    }
+}

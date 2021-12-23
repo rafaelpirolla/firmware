@@ -7,9 +7,11 @@
 #include "keymap.h"
 #include "key_action.h"
 
-struct postponer_buffer_record_type_t buffer[POSTPONER_BUFFER_SIZE];
+postponer_buffer_record_type_t buffer[POSTPONER_BUFFER_SIZE];
 uint8_t bufferSize = 0;
 uint8_t bufferPosition = 0;
+
+uint8_t Postponer_LastKeyLayer = 255;
 
 uint8_t cyclesUntilActivation = 0;
 key_state_t* Postponer_NextEventKey;
@@ -17,7 +19,7 @@ uint32_t lastPressTime;
 
 #define POS(idx) ((bufferPosition + (idx)) % POSTPONER_BUFFER_SIZE)
 
-bool Chording = false;
+uint8_t ChordingDelay = 0;
 static void chording();
 
 
@@ -82,11 +84,11 @@ void PostponerCore_PostponeNCycles(uint8_t n)
 
 bool PostponerCore_IsActive(void)
 {
-    return bufferSize > 0 || cyclesUntilActivation > 0 || Chording;
+    return bufferSize > 0 || cyclesUntilActivation > 0 || ChordingDelay;
 }
 
 
-void PostponerCore_TrackKeyEvent(key_state_t *keyState, bool active)
+void PostponerCore_TrackKeyEvent(key_state_t *keyState, bool active, uint8_t layer)
 {
     uint8_t pos = POS(bufferSize);
 
@@ -96,10 +98,11 @@ void PostponerCore_TrackKeyEvent(key_state_t *keyState, bool active)
         consumeEvent(1);
     }
 
-    buffer[pos] = (struct postponer_buffer_record_type_t) {
+    buffer[pos] = (postponer_buffer_record_type_t) {
             .time = CurrentTime,
             .key = keyState,
             .active = active,
+            .layer = layer,
     };
     bufferSize = bufferSize < POSTPONER_BUFFER_SIZE ? bufferSize + 1 : bufferSize;
     lastPressTime = active ? CurrentTime : lastPressTime;
@@ -107,15 +110,18 @@ void PostponerCore_TrackKeyEvent(key_state_t *keyState, bool active)
 
 void PostponerCore_RunPostponedEvents(void)
 {
-    if (Chording) {
+    if (ChordingDelay) {
         chording();
     }
     // Process one event every two cycles. (Unless someone keeps Postponer active by touching cycles_until_activation.)
     if (bufferSize != 0 && (cyclesUntilActivation == 0 || bufferSize > POSTPONER_BUFFER_MAX_FILL)) {
         buffer[bufferPosition].key->current = buffer[bufferPosition].active;
+        Postponer_LastKeyLayer = buffer[bufferPosition].layer;
         consumeEvent(1);
         // This gives the key two ticks (this and next) to get properly processed before execution of next queued event.
         PostponerCore_PostponeNCycles(1);
+        // wake macros
+        WAKE_MACROS_ON_KEYSTATE_CHANGE();
     }
 }
 
@@ -223,13 +229,13 @@ bool PostponerExtended_IsPendingKeyReleased(uint8_t idx)
 
 void PostponerExtended_PrintContent()
 {
-    struct postponer_buffer_record_type_t* first = &buffer[POS(0)];
-    struct postponer_buffer_record_type_t* last = &buffer[POS(bufferSize-1)];
+    postponer_buffer_record_type_t* first = &buffer[POS(0)];
+    postponer_buffer_record_type_t* last = &buffer[POS(bufferSize-1)];
     Macros_SetStatusString("keyid/active, size = ", NULL);
     Macros_SetStatusNum(bufferSize);
     Macros_SetStatusString("\n", NULL);
     for (int i = 0; i < POSTPONER_BUFFER_SIZE; i++) {
-        struct postponer_buffer_record_type_t* ptr = &buffer[i];
+        postponer_buffer_record_type_t* ptr = &buffer[i];
         Macros_SetStatusNum(Utils_KeyStateToKeyId(ptr->key));
         Macros_SetStatusString("/", NULL);
         Macros_SetStatusNum(ptr->active);
@@ -289,19 +295,18 @@ static uint8_t priority(key_state_t *key, bool active)
 
 static void chording()
 {
-    const uint16_t limit = 50;
-    if (bufferSize == 0 || CurrentTime - buffer[bufferPosition].time < limit ) {
+    if (bufferSize == 0 || CurrentTime - buffer[bufferPosition].time < ChordingDelay ) {
         PostponerCore_PostponeNCycles(0);
     } else {
         bool activated = false;
         for ( uint8_t i = 0; i < bufferSize - 1; i++ ) {
-            struct postponer_buffer_record_type_t* a = &buffer[POS(i)];
-            struct postponer_buffer_record_type_t* b = &buffer[POS(i+1)];
+            postponer_buffer_record_type_t* a = &buffer[POS(i)];
+            postponer_buffer_record_type_t* b = &buffer[POS(i+1)];
             uint8_t pa = priority(a->key, a->active);
             uint8_t pb = priority(b->key, b->active);
             if ( (a->active && !b->active) || (a->active && b->active && pa < pb) ) {
-                if (a->key != b->key && b->time - a->time < limit) {
-                    struct postponer_buffer_record_type_t tmp = *a;
+                if (a->key != b->key && b->time - a->time < ChordingDelay) {
+                    postponer_buffer_record_type_t tmp = *a;
                     *a = *b;
                     *b = tmp;
                     activated = true;

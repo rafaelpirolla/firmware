@@ -6,14 +6,16 @@ module_configuration_t ModuleConfigurations[ModuleId_ModuleCount] = {
     { // ModuleId_KeyClusterLeft
         .speed = 0.0,
         .baseSpeed = 5.0,
-        .acceleration = 0.0,
+        .xceleration = 0.0,
         .scrollSpeedDivisor = 5.0f,
         .caretSpeedDivisor = 5.0f,
-        .caretLockSkew = 0.5f,
-        .caretLockSkewFirstTick = 0.5f,
+        .zoomSpeedDivisor = 5.0f,
+        .axisLockSkew = 0.5f,
+        .axisLockSkewFirstTick = 0.5f,
         .cursorAxisLock = false,
         .scrollAxisLock = true,
-        .invertAxis = false,
+        .swapAxes = false,
+        .invertScrollDirection = false,
         .navigationModes = {
             NavigationMode_Scroll, // Base layer
             NavigationMode_Cursor, // Mod layer
@@ -24,14 +26,16 @@ module_configuration_t ModuleConfigurations[ModuleId_ModuleCount] = {
     { // ModuleId_TrackballRight
         .speed = 0.5, // min:0.2, opt:1.0/0.5, max:5
         .baseSpeed = 0.5, // min: 0, opt:0.0/0.5, max 5
-        .acceleration = 1.0, // min:0.0, opt:0.5/1.0, max:2.0
+        .xceleration = 1.0, // min:0.0, opt:0.5/1.0, max:2.0
         .scrollSpeedDivisor = 8.0f,
         .caretSpeedDivisor = 16.0f,
-        .caretLockSkew = 0.5f,
-        .caretLockSkewFirstTick = 1.0f,
+        .zoomSpeedDivisor = 4.0f,
+        .axisLockSkew = 0.5f,
+        .axisLockSkewFirstTick = 1.0f,
         .cursorAxisLock = false,
         .scrollAxisLock = false,
-        .invertAxis = false,
+        .swapAxes = false,
+        .invertScrollDirection = false,
         .navigationModes = {
             NavigationMode_Cursor, // Base layer
             NavigationMode_Scroll, // Mod layer
@@ -42,14 +46,16 @@ module_configuration_t ModuleConfigurations[ModuleId_ModuleCount] = {
     { // ModuleId_TrackpointRight
         .speed = 1.0, // min:0.2, opt:1.0, max:5
         .baseSpeed = 0.0, // min: 0, opt = 0.0, max 5
-        .acceleration = 0.0, // min:0.0, opt:0.0, max:2.0
+        .xceleration = 0.0, // min:0.0, opt:0.0, max:2.0
         .scrollSpeedDivisor = 8.0f,
         .caretSpeedDivisor = 16.0f,
-        .caretLockSkew = 0.5f,
-        .caretLockSkewFirstTick = 1.0f,
+        .zoomSpeedDivisor = 4.0f,
+        .axisLockSkew = 0.5f,
+        .axisLockSkewFirstTick = 1.0f,
         .cursorAxisLock = false,
         .scrollAxisLock = false,
-        .invertAxis = false,
+        .swapAxes = false,
+        .invertScrollDirection = false,
         .navigationModes = {
             NavigationMode_Cursor, // Base layer
             NavigationMode_Scroll, // Mod layer
@@ -60,14 +66,16 @@ module_configuration_t ModuleConfigurations[ModuleId_ModuleCount] = {
     { // ModuleId_TouchpadRight
         .speed = 0.7, // min:0.2, opt:1.3/0.6, max:1.8
         .baseSpeed = 0.5, // min: 0, opt = 0.0/0.5, max 5
-        .acceleration = 1.0, // min:0.0, opt:0.5/1.0, max:2.0
+        .xceleration = 1.0, // min:0.0, opt:0.5/1.0, max:2.0
         .scrollSpeedDivisor = 8.0f,
         .caretSpeedDivisor = 16.0f,
-        .caretLockSkew = 0.5f,
-        .caretLockSkewFirstTick = 1.0f,
+        .zoomSpeedDivisor = 4.0f,
+        .axisLockSkew = 0.5f,
+        .axisLockSkewFirstTick = 1.0f,
         .cursorAxisLock = false,
         .scrollAxisLock = false,
-        .invertAxis = false,
+        .swapAxes = false,
+        .invertScrollDirection = false,
         .navigationModes = {
             NavigationMode_Cursor, // Base layer
             NavigationMode_Scroll, // Mod layer
@@ -78,14 +86,16 @@ module_configuration_t ModuleConfigurations[ModuleId_ModuleCount] = {
     { // ModuleId_Next
         .speed = 1.0, // min:0.2, opt:1.0, max:5
         .baseSpeed = 0.5, // min: 0, opt = 0.0/0.5, max 5
-        .acceleration = 5.0, // min:0.1, opt:5.0, max:10.0
+        .xceleration = 5.0, // min:0.1, opt:5.0, max:10.0
         .scrollSpeedDivisor = 8.0f,
         .caretSpeedDivisor = 16.0f,
-        .caretLockSkew = 0.5f,
-        .caretLockSkewFirstTick = 1.0f,
+        .zoomSpeedDivisor = 4.0f,
+        .axisLockSkew = 0.5f,
+        .axisLockSkewFirstTick = 1.0f,
         .cursorAxisLock = false,
         .scrollAxisLock = false,
-        .invertAxis = false,
+        .swapAxes = false,
+        .invertScrollDirection = false,
         .navigationModes = {
             NavigationMode_Cursor, // Base layer
             NavigationMode_Scroll, // Mod layer

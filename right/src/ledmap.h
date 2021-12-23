@@ -6,6 +6,10 @@
     #include "key_action.h"
 
 // Typedefs:
+    typedef enum {
+        BacklightStrategy_Functional,
+        BacklightStrategy_ConstantRGB,
+    } backlight_strategy_t;
 
     typedef enum {
         KeyActionColor_None,
@@ -26,11 +30,14 @@
 
 // Variables:
 
+    extern backlight_strategy_t LedMap_BacklightStrategy;
+    extern rgb_t LedMap_ConstantRGB;
     extern rgb_t KeyActionColors[];
     extern rgb_t LedMap[SLOT_COUNT][MAX_KEY_COUNT_PER_MODULE];
 
 // Functions:
 
     extern void UpdateLayerLeds(void);
+    extern void InitLedLayout(void);
 
 #endif

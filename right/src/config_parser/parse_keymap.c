@@ -133,6 +133,11 @@ static parser_error_t parseKeyActions(uint8_t targetLayer, config_buffer_t *buff
             return errorCode;
         }
     }
+    /* default second touchpad action to right button */
+    if (!parserRunDry && moduleId == ModuleId_TouchpadRight) {
+        CurrentKeymap[targetLayer][slotId][1].type = KeyActionType_Mouse;
+        CurrentKeymap[targetLayer][slotId][1].mouseAction = SerializedMouseAction_RightClick;
+    }
     return ParserError_Success;
 }
 
@@ -144,6 +149,20 @@ static parser_error_t parseModule(config_buffer_t *buffer, uint8_t layer)
 
 static parser_error_t parseLayer(config_buffer_t *buffer, uint8_t layer)
 {
+    if(DataModelMajorVersion >= 5) {
+        uint8_t layerId = ReadUInt8(buffer);
+        switch(layerId) {
+        case SerializedLayerName_base:
+            layer = LayerId_Base;
+            break;
+        case SerializedLayerName_mod ... SerializedLayerName_super:
+            layer = layerId + 1;
+            break;
+        default:
+            return ParserError_InvalidLayerId;
+        }
+    }
+
     parser_error_t errorCode;
     uint16_t moduleCount = ReadCompactLength(buffer);
 
@@ -177,7 +196,7 @@ parser_error_t ParseKeymap(config_buffer_t *buffer, uint8_t keymapIdx, uint8_t k
     if (!abbreviationLen || abbreviationLen > 3) {
         return ParserError_InvalidAbbreviationLen;
     }
-    if (layerCount != LayerId_Count) {
+    if (layerCount > LayerId_Count) {
         return ParserError_InvalidLayerCount;
     }
     if (!ParserRunDry) {

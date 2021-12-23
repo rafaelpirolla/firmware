@@ -3,9 +3,10 @@
 #include "timer.h"
 #include "macros.h"
 #include "debug.h"
+#include "led_display.h"
 
-static uint16_t DoubleTapSwitchLayerTimeout = 300;
-static uint16_t DoubleTapSwitchLayerReleaseTimeout = 200;
+uint16_t DoubleTapSwitchLayerTimeout = 400;
+uint16_t DoubleTapSwitchLayerReleaseTimeout = 200;
 
 layer_id_t ActiveLayer = LayerId_Base;
 bool ActiveLayerHeld = false;
@@ -56,12 +57,13 @@ void updateActiveLayer() {
 
     if(activeLayer == LayerId_Base) {
         activeLayer = Macros_ActiveLayer;
-        activeLayerHeld = Macros_ActiveLayer;
+        activeLayerHeld = Macros_ActiveLayerHeld;
     }
     //(write actual ActiveLayer atomically, so that random observer is not confused)
     ActiveLayer = activeLayer;
     ActiveLayerHeld = activeLayerHeld;
     UpdateLayerLeds();
+    LedDisplay_SetLayer(ActiveLayer);
 }
 
 /*
@@ -163,7 +165,7 @@ void LayerSwitcher_UpdateActiveLayer() {
     if(!heldLayers[heldLayer]) {
         heldLayer = LayerId_Base;
     }
-    for (layer_id_t layerId = LayerId_Mod; layerId <= LayerId_Mouse; layerId++) {
+    for (layer_id_t layerId = LayerId_Mod; layerId < LayerId_Count; layerId++) {
         if (heldLayers[layerId] && heldLayer == LayerId_Base) {
             heldLayer = layerId;
         }
