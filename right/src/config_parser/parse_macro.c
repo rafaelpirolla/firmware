@@ -115,6 +115,28 @@ parser_error_t parseCommandMacroAction(config_buffer_t *buffer, macro_action_t *
     return ParserError_Success;
 }
 
+
+parser_error_t parseDollarNotation(config_buffer_t *buffer, macro_action_t *macroAction)
+{
+    uint16_t textLen;
+    const char *text = ReadString(buffer, &textLen);
+
+    if(*text == '$') {
+        macroAction->type = MacroActionType_Command;
+        macroAction->cmd.text = text;
+        macroAction->cmd.textLen = textLen;
+        macroAction->cmd.cmdCount = countCommands(macroAction);
+    } else {
+        macroAction->type = MacroActionType_Text;
+        macroAction->text.text = text;
+        macroAction->text.textLen = textLen;
+    }
+
+    return ParserError_Success;
+}
+
+
+
 parser_error_t ParseMacroAction(config_buffer_t *buffer, macro_action_t *macroAction)
 {
     uint8_t macroActionType = ReadUInt8(buffer);
@@ -131,7 +153,7 @@ parser_error_t ParseMacroAction(config_buffer_t *buffer, macro_action_t *macroAc
         case SerializedMacroActionType_DelayMacroAction:
             return parseDelayMacroAction(buffer, macroAction);
         case SerializedMacroActionType_TextMacroAction:
-            return parseTextMacroAction(buffer, macroAction);
+            return parseDollarNotation(buffer, macroAction);
         case SerializedMacroActionType_CommandMacroAction:
             return parseCommandMacroAction(buffer, macroAction);
     }
