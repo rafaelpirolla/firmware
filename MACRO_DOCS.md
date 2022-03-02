@@ -32,8 +32,19 @@ Some of the usecases which can be achieved via these commands are:
 
 2) Create some macro with some command action. For instance:
 
-    holdKey leftShift
-    ifDoubletap tapKey capsLock
+  Use either native command action (if you have an Agent which supports it):
+
+```
+holdKey leftShift
+ifDoubletap tapKey capsLock
+```
+
+  Or use the text action and prefix the commands with `$`:
+
+```
+$holdKey leftShift
+$ifDoubletap tapKey capsLock
+```
     
 3) Understanding this readme:
 
